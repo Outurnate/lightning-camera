@@ -1,0 +1,156 @@
+<!--
+ * lightning-camera
+ * Copyright (C) 2020 Joe Dillon
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="Lightning Camera Dashboard" />
+  <meta name="author" content="lightning-camera" />
+
+  <title>Lightning Camera</title>
+
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <link rel="icon" href="png/favicon.png">
+  <link rel="apple-touch-icon-precomposed" href="png/favicon.png">
+</head>
+
+<body>
+  <script id="video-template" type="text/x-custom-template">
+    <div class="media">
+      <a href="#" id="{thumbnail_id}"><img class="align-self-center mr-3 thumbnail" src="{thumbnail}" alt="Video Thumbnail" data-toggle="modal" data-target="#videoModal" /></a>
+      <div class="media-body">
+        <a href="#" id="{title_id}" data-toggle="modal" data-target="#videoModal"><h6 class="mt-0">{title}</h5></a>
+        <a href="{url}" download /><img class="icon" src="svg/data-transfer-download.svg" alt="Video Download" /></a>
+      </div>
+    </div>
+  </script>
+
+  <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-body mb-0 p-0">
+          <video id="videoPreview" loop controls></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settingsModalLabel">Change capture parameters</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body settings-form">
+          <div class="form-group">
+            <label for="inputEdgeDetectionSeconds">Edge Detection Window (seconds)</label>
+            <input type="text" id="inputEdgeDetectionSeconds" class="form-control" aria-describedby="helpEdgeDetectionSeconds" required />
+            <small id="helpEdgeDetectionSeconds" class="text-muted">
+              Number of seconds to establish visual noise floor
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="inputDebounceSeconds">Debounce Threshold (seconds)</label>
+            <input type="text" id="inputDebounceSeconds" class="form-control" aria-describedby="helpDebounceSeconds" required />
+            <small id="helpDebounceSeconds" class="text-muted">
+              How long after an event is captured before another can be captured? (should be larger than capture delay, but doesn't have to be)
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="inputTriggerDelay">Capture Delay (seconds)</label>
+            <input type="text" id="inputTriggerDelay" class="form-control" aria-describedby="helpTriggerDelay" required />
+            <small id="helpTriggerDelay" class="text-muted">
+              How long after an event should retroactive recording be started?
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="inputTriggerThreshold">Trigger Threshold</label>
+            <input type="text" id="inputTriggerThreshold" class="form-control" aria-describedby="helpTriggerThreshold" required />
+            <small id="helpTriggerThreshold" class="text-muted">
+              How much brightness has to increase over the noise floor to trigger a recording
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" data-dismiss="modal" id="saveSettings">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><img src="png/favicon.png" alt="Icon" class="favicon" />Lightning Camera</a>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link" href="#settings" data-toggle="modal">Settings</a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-9">
+        <div class="letterbox">
+          <img src="live.jpeg" class="mx-auto d-block" alt="Live View" id="live" />
+        </div>
+        <form class="form-inline formgapped">
+          <div class="input-group input-group-sm mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="display-width">Width</span>
+            </div>
+            <input type="text" class="form-control form-control-sm" placeholder="0" aria-label="Width" aria-describedby="display-width" readonly />
+          </div>
+          <div class="input-group input-group-sm mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="display-height">Height</span>
+            </div>
+            <input type="text" class="form-control form-control-sm" placeholder="0" aria-label="Height" aria-describedby="display-height" readonly />
+          </div>
+          <div class="input-group input-group-sm mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="display-fps">FPS</span>
+            </div>
+            <input type="text" class="form-control form-control-sm" placeholder="0" aria-label="FPS" aria-describedby="display-fps" readonly />
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="camera-enabled" checked />
+            <label class="form-check-label" for="camera-enabled">Camera Enabled</label>
+          </div>
+        </form>
+      </div>
+      <div class="col-3 overflow-auto fullheight">
+        <img src="png/loader.png" alt="loader" id="loader" />
+        <span id="videoList"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

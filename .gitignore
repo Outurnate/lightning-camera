@@ -1,0 +1,5 @@
+*.srctrlbm
+*.srctrldb
+*.srctrlprj
+build
+videolib
