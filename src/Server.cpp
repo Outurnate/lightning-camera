@@ -1,4 +1,4 @@
-/* lightning-camera
+/* stormwatch
  * Copyright (C) 2020 Joe Dillon
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ using router_t = restinio::router::express_router_t<restinio::router::std_regex_
 template <typename RESP>
 inline RESP init(RESP resp)
 {
-	resp.append_header("Server", "lightning-camera");
+	resp.append_header("Server", "stormwatch");
 	resp.append_header_date_field();
 
 	return resp;

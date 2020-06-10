@@ -1,4 +1,4 @@
-/* lightning-camera
+/* stormwatch
  * Copyright (C) 2020 Joe Dillon
  *
  * This program is free software: you can redistribute it and/or modify

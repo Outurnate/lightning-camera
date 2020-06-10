@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(lightning-camera)
+project(stormwatch)
 
 include(cmake/CMakeRC.cmake)
 cmrc_add_resource_library(web_resources
@@ -32,7 +32,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 
-add_executable(lightning-camera
+add_executable(stormwatch
                src/main.cpp
                src/VideoLibrary.cpp
                src/VideoTrigger.cpp
@@ -40,15 +40,15 @@ add_executable(lightning-camera
                src/Camera.cpp
                src/Server.cpp
                src/OpenCVInit.cpp)
-target_compile_definitions(lightning-camera PUBLIC RESTINIO_USE_BOOST_ASIO)
-target_link_libraries(lightning-camera web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog magic_enum::magic_enum)
-target_compile_options(lightning-camera PRIVATE
+target_compile_definitions(stormwatch PUBLIC RESTINIO_USE_BOOST_ASIO)
+target_link_libraries(stormwatch web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog magic_enum::magic_enum)
+target_compile_options(stormwatch PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
 )
 if(supported)
   message(STATUS "IPO / LTO enabled")
-  set_property(TARGET lightning-camera PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET stormwatch PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
   message(STATUS "IPO / LTO not supported: <${error}>")
 endif()
