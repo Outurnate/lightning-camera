@@ -1,0 +1,4 @@
+cmake/* linguist-vendored
+web/css/bootstrap.min.css linguist-vendored
+web/js/bootstrap.min.js linguist-vendored
+web/js/jquery-3.5.1.min.js linguist-vendored
