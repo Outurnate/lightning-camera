@@ -32,6 +32,10 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 
+if(WIN32)
+  set(PLATFORM_FILES platform/icon.rc)
+endif()
+
 add_executable(stormwatch
                src/main.cpp
                src/VideoLibrary.cpp
@@ -39,7 +43,8 @@ add_executable(stormwatch
                src/FPSCounter.cpp
                src/Camera.cpp
                src/Server.cpp
-               src/OpenCVInit.cpp)
+               src/OpenCVInit.cpp
+               ${PLATFORM_FILES})
 target_compile_definitions(stormwatch PUBLIC RESTINIO_USE_BOOST_ASIO)
 target_link_libraries(stormwatch web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog magic_enum::magic_enum)
 target_compile_options(stormwatch PRIVATE
