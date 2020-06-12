@@ -22,9 +22,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
+#include <cpp-base64/base64.h>
 #include <fmt/format.h>
-#include <iostream>
-#include <regex>
 
 namespace fs = std::filesystem;
 
@@ -39,8 +38,9 @@ VideoLibrary::VideoLibrary()
 void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail)
 {
   auto timestamp = boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::local_time());
-  auto videoName = videoPath / fmt::format("{}.mp4", timestamp);
-  auto thumbName = videoPath / fmt::format("{}.jpeg", timestamp);
+  auto encoded = base64_encode(reinterpret_cast<const unsigned char*>(timestamp.c_str()), timestamp.length());
+  auto videoName = videoPath / fmt::format("{}.mp4", encoded);
+  auto thumbName = videoPath / fmt::format("{}.jpeg", encoded);
   
   boost::asio::post(pool, [clip, clipSize, fps, videoName, thumbName, seekBackThumbnail]()
   {
@@ -73,5 +73,11 @@ std::vector<std::string> VideoLibrary::GetClips()
 
 std::optional<fs::path> VideoLibrary::GetClipPath(const std::string& name)
 {
-  return fs::exists(videoPath) ? std::optional(videoPath / name) : std::nullopt;
+  // TODO path traversal
+  return fs::exists(videoPath) ?
+    std::optional(videoPath / name) :
+    std::nullopt;
 }
+
+// Hack
+#include <cpp-base64/base64.cpp>

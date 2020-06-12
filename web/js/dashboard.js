@@ -48,7 +48,7 @@ var updateVideos = function()
         var source = video.firstChild;
 
         video.pause();
-        source.setAttribute("src", "clips/" + val + ".mp4"); 
+        source.setAttribute("src", val.video); 
       
         video.load();
         video.play();

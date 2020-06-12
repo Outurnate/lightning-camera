@@ -21,6 +21,7 @@
 #include <nlohmann/json.hpp>
 #include <cmrc/cmrc.hpp>
 #include <spdlog/spdlog.h>
+#include <cpp-base64/base64.h>
 
 #include "Camera.hpp"
 
@@ -104,7 +105,7 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
       for (const std::string& clip : library->GetClips())
         clips.push_back(json::object(
           {
-            { "title", clip },
+            { "title", base64_decode(clip) },
             { "video", fmt::format("/clips/{}.mp4", clip) },
             { "thumbnail", fmt::format("/clips/{}.jpeg", clip) }
           }));
@@ -116,14 +117,20 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
     });
   
   router->http_get(
-    "/clips/([a-zA-Z0-9\\.:-]+)",
+    "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|mp4)",
     [library](auto req, auto params)
     {
-      auto clipPath = library->GetClipPath(std::string(params[0]));
+      auto clipPath = library->GetClipPath(fmt::format("{}.{}", params[0], params[1]));
       if (clipPath)
       {
-        return init(req->create_response())
-          .append_header(restinio::http_field::content_type, "video/mp4")
+        auto resp = init(req->create_response());
+
+        if (params[1] == "jpeg")
+          resp.append_header(restinio::http_field::content_type, "image/jpeg");
+        else
+          resp.append_header(restinio::http_field::content_type, "video/mp4");
+        
+        return resp
           .set_body(restinio::sendfile(clipPath.value().string()))
           .done();
       }
