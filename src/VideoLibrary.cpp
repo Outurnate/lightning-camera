@@ -27,11 +27,28 @@
 #include <spdlog/spdlog.h>
 #include <regex>
 
+#ifdef WINDOWS
+#include <shlobj.h>
+#endif
+
 namespace fs = std::filesystem;
+
+fs::path GetRootPath()
+{
+#ifdef WINDOWS
+  TCHAR path[MAX_PATH];
+  if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path)))
+    return fs::path(std::string(path));
+  else
+    return fs::current_path();
+#else
+  return fs::current_path();
+#endif
+}
 
 VideoLibrary::VideoLibrary()
   : pool(1),
-    videoPath(fs::current_path() / "videolib")
+    videoPath(GetRootPath() / "videolib")
 {
   if (!fs::exists(videoPath))
     fs::create_directory(videoPath);
