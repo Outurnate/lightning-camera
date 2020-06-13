@@ -20,6 +20,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include <spdlog/spdlog.h>
 
+#ifdef WINDOWS
+#define ATOMIC_FLAG_INIT
+#endif
+
 Camera::Camera(std::shared_ptr<VideoLibrary> videoLibrary, double clipLengthSeconds)
   : library(videoLibrary),
     frames(),
@@ -34,8 +38,9 @@ Camera::Camera(std::shared_ptr<VideoLibrary> videoLibrary, double clipLengthSeco
     throw 9; // TODO
   }
 
+  auto propFPS = cap.get(cv::CAP_PROP_FPS);
   status.object.resolution = cv::Size(cap.get(cv::CAP_PROP_FRAME_WIDTH), cap.get(cv::CAP_PROP_FRAME_HEIGHT));
-  status.object.nominalFPS = cap.get(cv::CAP_PROP_FPS);
+  status.object.nominalFPS = propFPS == 0 ? 30 : propFPS;
 
   size_t bufferSize = clipLengthSeconds * status.object.nominalFPS;
   frames.reserve(bufferSize);

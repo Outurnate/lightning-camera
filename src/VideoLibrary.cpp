@@ -46,9 +46,13 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
   {
     cv::Mat thumbnail;
     cv::resize(clip[clip.size() - seekBackThumbnail], thumbnail, cv::Size(128, 96));
-    cv::imwrite(thumbName, thumbnail);
+    cv::imwrite(thumbName.string(), thumbnail);
 
-    cv::VideoWriter output(videoName, cv::VideoWriter::fourcc('v', 'p', '0', '9'), fps, clipSize);
+#ifdef WINDOWS
+    cv::VideoWriter output(videoName.string(), cv::CAP_DSHOW, cv::VideoWriter::fourcc('v', 'p', '0', '9'), fps, clipSize);
+#else
+    cv::VideoWriter output(videoName.string(), cv::VideoWriter::fourcc('v', 'p', '0', '9'), fps, clipSize);
+#endif
     output.set(cv::VIDEOWRITER_PROP_QUALITY, 100);
     for (const cv::Mat& frame : clip)
       output.write(frame);
@@ -62,7 +66,7 @@ std::vector<std::string> VideoLibrary::GetClips()
   {
     auto clipName = clip.path().filename();
     if (clipName.extension() == ".mp4")
-      clips.push_back(clipName.stem());
+      clips.push_back(clipName.stem().string());
   }
   return clips;
 }
