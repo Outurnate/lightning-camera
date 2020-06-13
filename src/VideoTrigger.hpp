@@ -35,7 +35,7 @@ private:
   const unsigned char TRIP_THRESHOLD;
   const size_t POST_TRIGGER_COUNT;
 
-  MovingAverage<unsigned char> thresholds;
+  MovingAverage<int> thresholds;
   size_t currentDebounce;
   size_t delayCount;
   bool isDelayed;

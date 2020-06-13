@@ -38,7 +38,7 @@ public:
 
   T Mean() const
   {
-    return std::accumulate(values.begin(), values.end(), initialValue) / values.size();
+    return std::accumulate(values.cbegin(), values.cend(), initialValue) / values.size();
   }
 private:
   std::vector<T> values;
