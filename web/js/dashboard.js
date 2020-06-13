@@ -15,71 +15,88 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-setInterval(function()
-{
-  $("#live").attr("src", "live.jpeg?" + (new Date()).getTime());
-}, 1000);
-
-var video = document.getElementById("videoPreview");
-var source = document.createElement("source");
-video.appendChild(source);
-video.type = "video/mp4";
-
-var updateVideos = function()
-{
-  $("#loader").show();
-  $("#videoList").empty();
-  $.getJSON("clips", function(data)
+$(document).ready(function() {
+  setInterval(function()
   {
-    var template = $('#video-template').html();
-    $.each(data, function(key, val)
+    $("#live").attr("src", "live.jpeg?" + (new Date()).getTime());
+    $.getJSON("stats", function(data)
     {
-      var title = new Date(Date.parse(val.title));
-      $('#videoList').append(template
-        .replace("{title}", title)
-        .replace("{thumbnail}", val.thumbnail)
-        .replace("{url}", val.video)
-        .replace("{thumbnail_id}", "thumbnail" + key)
-        .replace("{title_id}", "title" + key));
-      
-      var showHandler = function()
-      {
-        var video = document.getElementById("videoPreview");
-        var source = video.firstChild;
-
-        video.pause();
-        source.setAttribute("src", val.video); 
-      
-        video.load();
-        video.play();
-      };
-
-      $("#thumbnail" + key).click(showHandler);
-      $("#title" + key).click(showHandler);
+      $("#camera-width").val(data.width);
+      $("#camera-height").val(data.height);
+      $("#camera-enabled").prop("checked", data.enabled);
+      $("#camera-fps").val(data.measuredFPS.toFixed(2) + "/" + data.nominalFPS.toFixed(2));
     });
-    $("#loader").hide();
+  }, 1000);
+
+  $('#camera-enabled').change(function()
+  {
+    if (this.checked)
+      $.post("start");
+    else
+      $.post("stop");
   });
-}
 
-setInterval(updateVideos, 60000);
-updateVideos();
+  var video = document.getElementById("videoPreview");
+  var source = document.createElement("source");
+  video.appendChild(source);
+  video.type = "video/mp4";
 
-$.getJSON("settings", function(data)
-{
-  $("#inputEdgeDetectionSeconds").val(data.EdgeDetectionSeconds);
-  $("#inputDebounceSeconds").val(data.DebounceSeconds);
-  $("#inputTriggerDelay").val(data.TriggerDelay);
-  $("#inputTriggerThreshold").val(data.TriggerThreshold);
-});
-
-$("#saveSettings").click(function()
-{
-  $.post("settings",
+  var updateVideos = function()
+  {
+    $("#loader").show();
+    $("#videoList").empty();
+    $.getJSON("clips", function(data)
     {
-      EdgeDetectionSeconds: $("#inputEdgeDetectionSeconds").val(),
-      DebounceSeconds: $("#inputDebounceSeconds").val(),
-      TriggerDelay: $("#inputTriggerDelay").val(),
-      TriggerThreshold: $("#inputTriggerThreshold").val()
-    }
-  );
+      var template = $('#video-template').html();
+      $.each(data, function(key, val)
+      {
+        var title = new Date(Date.parse(val.title));
+        $('#videoList').append(template
+          .replace("{title}", title)
+          .replace("{thumbnail}", val.thumbnail)
+          .replace("{url}", val.video)
+          .replace("{thumbnail_id}", "thumbnail" + key)
+          .replace("{title_id}", "title" + key));
+        
+        var showHandler = function()
+        {
+          var video = document.getElementById("videoPreview");
+          var source = video.firstChild;
+
+          video.pause();
+          source.setAttribute("src", val.video); 
+        
+          video.load();
+          video.play();
+        };
+
+        $("#thumbnail" + key).click(showHandler);
+        $("#title" + key).click(showHandler);
+      });
+      $("#loader").hide();
+    });
+  }
+
+  setInterval(updateVideos, 60000);
+  updateVideos();
+
+  $.getJSON("settings", function(data)
+  {
+    $("#inputEdgeDetectionSeconds").val(data.EdgeDetectionSeconds);
+    $("#inputDebounceSeconds").val(data.DebounceSeconds);
+    $("#inputTriggerDelay").val(data.TriggerDelay);
+    $("#inputTriggerThreshold").val(data.TriggerThreshold);
+  });
+
+  $("#saveSettings").click(function()
+  {
+    $.post("settings",
+      {
+        EdgeDetectionSeconds: $("#inputEdgeDetectionSeconds").val(),
+        DebounceSeconds: $("#inputDebounceSeconds").val(),
+        TriggerDelay: $("#inputTriggerDelay").val(),
+        TriggerThreshold: $("#inputTriggerThreshold").val()
+      }
+    );
+  });
 });

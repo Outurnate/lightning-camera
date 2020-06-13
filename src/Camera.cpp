@@ -63,11 +63,28 @@ void Camera::ApplyPropertyChange()
   applySettings.clear();
 }
 
+std::vector<uchar> GetDefaultImage()
+{
+  std::vector<uchar> image;
+  cv::imencode(".jpg", cv::Mat(cv::Size(32, 32), CV_8UC3, cv::Scalar(0, 0, 0)), image);
+  return image;
+}
+
 std::vector<uchar> Camera::GetPreview()
 {
-  std::shared_lock lock(preview.mutex);
+  static std::vector<uchar> defaultImage = GetDefaultImage();
+
   std::vector<uchar> image;
-  cv::imencode(".jpg", preview.object, image);
+  if (IsRunning())
+  {
+    std::shared_lock lock(preview.mutex);
+    if (!preview.object.empty())
+      cv::imencode(".jpg", preview.object, image);
+    else
+      image = defaultImage;
+  }
+  else
+    image = defaultImage;
   return image;
 }
 

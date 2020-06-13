@@ -68,7 +68,7 @@ std::vector<std::string> VideoLibrary::GetClips()
   for (auto& clip : fs::directory_iterator(videoPath))
   {
     auto clipName = clip.path().filename();
-    if (clipName.extension() == ".mp4" && fs::exists(clipName.stem().append(".jpeg")))
+    if (clipName.extension() == ".jpeg")
       clips.push_back(clipName.stem().string());
   }
   return clips;
@@ -76,7 +76,7 @@ std::vector<std::string> VideoLibrary::GetClips()
 
 std::optional<fs::path> VideoLibrary::GetClipPath(const std::string& name)
 {
-  std::regex base64("[A-Za-z0-9\\+/=]+");
+  std::regex base64("[A-Za-z0-9\\+/=]+\\.(jpeg|mp4)");
   return std::regex_match(name, base64) && fs::exists(videoPath) ?
     std::optional(videoPath / name) :
     std::nullopt;
