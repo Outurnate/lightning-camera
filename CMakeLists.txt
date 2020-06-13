@@ -52,6 +52,7 @@ target_compile_options(stormwatch PRIVATE
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
 )
 install(TARGETS stormwatch DESTINATION stormwatch)
+install(FILES LICENSE.txt DESTINATION stormwatch)
 
 if(supported)
   message(STATUS "IPO / LTO enabled")
