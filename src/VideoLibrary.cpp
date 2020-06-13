@@ -24,6 +24,7 @@
 #include <opencv2/videoio.hpp>
 #include <cpp-base64/base64.h>
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace fs = std::filesystem;
 
@@ -44,18 +45,19 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
   
   boost::asio::post(pool, [clip, clipSize, fps, videoName, thumbName, seekBackThumbnail]()
   {
-    cv::Mat thumbnail;
-    cv::resize(clip[clip.size() - seekBackThumbnail], thumbnail, cv::Size(128, 96));
-    cv::imwrite(thumbName.string(), thumbnail);
-
 #ifdef WINDOWS
-    cv::VideoWriter output(videoName.string(), cv::CAP_DSHOW, cv::VideoWriter::fourcc('v', 'p', '0', '9'), fps, clipSize);
+    cv::VideoWriter output(videoName.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps, clipSize);
 #else
     cv::VideoWriter output(videoName.string(), cv::VideoWriter::fourcc('v', 'p', '0', '9'), fps, clipSize);
 #endif
     output.set(cv::VIDEOWRITER_PROP_QUALITY, 100);
     for (const cv::Mat& frame : clip)
       output.write(frame);
+
+    cv::Mat thumbnail;
+    cv::resize(clip[clip.size() - seekBackThumbnail], thumbnail, cv::Size(128, 96));
+    cv::imwrite(thumbName.string(), thumbnail);
+    spdlog::get("camera")->info("Clip saved");
   });
 }
 

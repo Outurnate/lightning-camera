@@ -131,7 +131,6 @@ void Camera::Run()
       for (size_t i = 0; i < (frames.size() + 1); ++i)
         clip.push_back(frames[(frameIndex + i) % frames.size()].clone());
       library->SaveClip(clip, status.object.resolution, status.object.nominalFPS, trigger->GetSeekForThumbnail());
-      spdlog::get("camera")->info("Clip saved");
     }
     
     // Update the FPS counter
