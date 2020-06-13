@@ -51,12 +51,26 @@ target_compile_options(stormwatch PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
 )
+install(TARGETS stormwatch DESTINATION stormwatch)
+
 if(supported)
   message(STATUS "IPO / LTO enabled")
   set_property(TARGET stormwatch PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
   message(STATUS "IPO / LTO not supported: <${error}>")
 endif()
+
 if(WIN32)
   target_compile_definitions(stormwatch PUBLIC WINDOWS)
 endif()
+
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_PACKAGE_NAME "stormwatch")
+set(CPACK_PACKAGE_VENDOR "stormwatch")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Joe Dillon")
+
+include(CPack)
