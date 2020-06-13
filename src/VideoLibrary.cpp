@@ -25,6 +25,7 @@
 #include <cpp-base64/base64.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <regex>
 
 namespace fs = std::filesystem;
 
@@ -75,8 +76,8 @@ std::vector<std::string> VideoLibrary::GetClips()
 
 std::optional<fs::path> VideoLibrary::GetClipPath(const std::string& name)
 {
-  // TODO path traversal
-  return fs::exists(videoPath) ?
+  std::regex base64("[A-Za-z0-9\\+/=]+");
+  return std::regex_match(name, base64) && fs::exists(videoPath) ?
     std::optional(videoPath / name) :
     std::nullopt;
 }
