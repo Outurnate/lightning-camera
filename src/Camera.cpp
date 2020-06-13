@@ -24,29 +24,14 @@
 #define ATOMIC_FLAG_INIT
 #endif
 
-Camera::Camera(std::shared_ptr<VideoLibrary> videoLibrary, double clipLengthSeconds)
+Camera::Camera(std::shared_ptr<VideoLibrary> videoLibrary)
   : library(videoLibrary),
-    frames(),
-    frameIndex(0),
     abort(ATOMIC_FLAG_INIT),
     applySettings(ATOMIC_FLAG_INIT)
 {
-  cap.open(0);
-  if (!cap.isOpened())
-  {
-    spdlog::get("camera")->critical("ERROR! Unable to open camera");
-    throw 9; // TODO
-  }
+  abort.clear();
+  applySettings.clear();
 
-  auto propFPS = cap.get(cv::CAP_PROP_FPS);
-  status.object.resolution = cv::Size(cap.get(cv::CAP_PROP_FRAME_WIDTH), cap.get(cv::CAP_PROP_FRAME_HEIGHT));
-  status.object.nominalFPS = propFPS == 0 ? 30 : propFPS;
-
-  size_t bufferSize = clipLengthSeconds * status.object.nominalFPS;
-  frames.reserve(bufferSize);
-  for (size_t i = 0; i < bufferSize; ++i)
-    frames.push_back(cv::Mat(status.object.resolution, CV_8UC3, cv::Scalar(0, 0, 0)));
-  
   properties = std::map<CameraProperty, double>(
   {
     { CameraProperty::EdgeDetectionSeconds, 2.0 },
@@ -56,15 +41,11 @@ Camera::Camera(std::shared_ptr<VideoLibrary> videoLibrary, double clipLengthSeco
   });
 
   ApplyPropertyChange();
-
-  abort.test_and_set();
-  cameraThread = std::thread(&Camera::Run, this);
 }
 
 Camera::~Camera()
 {
-  abort.clear();
-  cameraThread.join();
+  Stop();
 }
 
 double Camera::GetProperty(CameraProperty property) const
@@ -96,8 +77,62 @@ CameraStatus Camera::GetStatus()
   return CameraStatus(status.object);
 }
 
-void Camera::Run()
+void Camera::Start(double clipLengthSeconds)
 {
+  std::unique_lock(cameraThread.mutex);
+  if (cameraThread.object.get_id() == std::thread::id())
+  {
+    abort.test_and_set();
+    cameraThread.object = std::thread(&Camera::Run, this, clipLengthSeconds);
+    spdlog::get("camera")->info("Started camera");
+  }
+  else
+    spdlog::get("camera")->warn("Start request received but camera already started");
+  
+}
+
+void Camera::Stop()
+{
+  std::unique_lock(cameraThread.mutex);
+  if (cameraThread.object.joinable())
+  {
+    abort.clear();
+    cameraThread.object.join();
+    cameraThread.object = std::thread();
+    spdlog::get("camera")->info("Stopped camera");
+  }
+  else
+    spdlog::get("camera")->warn("Stop request received but camera already stopped");
+}
+
+bool Camera::IsRunning()
+{
+  std::unique_lock(cameraThread.mutex);
+  return cameraThread.object.get_id() != std::thread::id();
+}
+
+void Camera::Run(double clipLengthSeconds)
+{
+  cv::VideoCapture cap;
+  std::vector<cv::Mat> frames;
+  size_t frameIndex = 0;
+
+  cap.open(0);
+  if (!cap.isOpened())
+  {
+    spdlog::get("camera")->critical("ERROR! Unable to open camera");
+    return;
+  }
+
+  auto propFPS = cap.get(cv::CAP_PROP_FPS);
+  status.object.resolution = cv::Size(cap.get(cv::CAP_PROP_FRAME_WIDTH), cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+  status.object.nominalFPS = propFPS == 0 ? 30 : propFPS;
+
+  size_t bufferSize = clipLengthSeconds * status.object.nominalFPS;
+  frames.reserve(bufferSize);
+  for (size_t i = 0; i < bufferSize; ++i)
+    frames.push_back(cv::Mat(status.object.resolution, CV_8UC3, cv::Scalar(0, 0, 0)));
+
   while(abort.test_and_set())
   {
     cv::Mat frame;

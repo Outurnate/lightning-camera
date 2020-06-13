@@ -79,6 +79,30 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
         .set_body(camera->GetPreview())
         .done();
     });
+  
+  router->http_post(
+    "/start",
+    [camera](auto req, auto)
+    {
+      camera->Start();
+
+      return init(req->create_response())
+        .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
+        .set_body("[]")
+        .done();
+    });
+  
+  router->http_post(
+    "/stop",
+    [camera](auto req, auto)
+    {
+      camera->Stop();
+      
+      return init(req->create_response())
+        .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
+        .set_body("[]")
+        .done();
+    });
 
   router->http_get(
     "/stats",
@@ -90,6 +114,7 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
       stats["height"]      = cameraStatus.resolution.height;
       stats["nominalFPS"]  = cameraStatus.nominalFPS;
       stats["measuredFPS"] = cameraStatus.measuredFPS;
+      stats["enabled"]     = camera->IsRunning();
 
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")

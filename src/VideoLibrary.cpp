@@ -67,7 +67,7 @@ std::vector<std::string> VideoLibrary::GetClips()
   for (auto& clip : fs::directory_iterator(videoPath))
   {
     auto clipName = clip.path().filename();
-    if (clipName.extension() == ".mp4")
+    if (clipName.extension() == ".mp4" && fs::exists(clipName.stem().append(".jpeg")))
       clips.push_back(clipName.stem().string());
   }
   return clips;

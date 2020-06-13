@@ -27,6 +27,7 @@
 #include <memory>
 #include <thread>
 #include <shared_mutex>
+#include <mutex>
 #include <map>
 #include <magic_enum.hpp>
 
@@ -46,6 +47,13 @@ struct SharedLockable
   std::shared_mutex mutex;
 };
 
+template<typename T>
+struct UniqueLockable
+{
+  T object;
+  std::mutex mutex;
+};
+
 struct CameraStatus
 {
   cv::Size resolution;
@@ -56,7 +64,7 @@ struct CameraStatus
 class Camera
 {
 public:
-  Camera(std::shared_ptr<VideoLibrary> videoLibrary, double clipLengthSeconds = 30);
+  Camera(std::shared_ptr<VideoLibrary> videoLibrary);
   virtual ~Camera();
 
   std::vector<uchar> GetPreview();
@@ -64,8 +72,11 @@ public:
   void SetProperty(CameraProperty property, double value);
   void ApplyPropertyChange();
   CameraStatus GetStatus();
+  void Start(double clipLengthSeconds = 30);
+  void Stop();
+  bool IsRunning();
 private:
-  void Run();
+  void Run(double clipLengthSeconds = 30);
 
   std::unique_ptr<VideoTrigger> trigger;
   std::shared_ptr<VideoLibrary> library;
@@ -73,13 +84,9 @@ private:
   std::map<CameraProperty, double> properties;
   SharedLockable<cv::Mat> preview;
   SharedLockable<CameraStatus> status;
-
-  cv::VideoCapture cap;
-  std::vector<cv::Mat> frames;
-  size_t frameIndex;
   std::atomic_flag abort;
   std::atomic_flag applySettings;
-  std::thread cameraThread;
+  UniqueLockable<std::thread> cameraThread;
 };
 
 #endif
