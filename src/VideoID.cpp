@@ -15,26 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PROPERTYMANAGER_HPP
-#define PROPERTYMANAGER_HPP
+#include "VideoID.hpp"
 
-#include <magic_enum.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <cpp-base64/base64.h>
 
-enum class Property
+VideoID::VideoID()
 {
-  EdgeDetectionSeconds,
-  DebounceSeconds,
-  TriggerDelay,
-  TriggerThreshold,
-  ClipLengthSeconds,
-  BayerMode,
-  Width,
-  Height
-};
-constexpr auto PropertyEntries = magic_enum::enum_entries<Property>();
+  auto timestamp = boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::local_time());
+  auto encoded = base64_encode(reinterpret_cast<const unsigned char*>(timestamp.c_str()), timestamp.length());
+}
 
-class PropertyManager
+VideoID::VideoID(const std::string& id)
+  : id(id)
 {
-};
+  // try to decode
+  boost::posix_time::from_iso_extended_string(GetTimestamp());
+}
 
-#endif
+const std::string& VideoID::GetID() const
+{
+  return id;
+}
+
+const std::string VideoID::GetTimestamp() const
+{
+  return base64_decode(id);
+}
+
+// Hack
+#include <cpp-base64/base64.cpp>

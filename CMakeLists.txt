@@ -44,6 +44,7 @@ add_executable(stormwatch
                src/Camera.cpp
                src/Server.cpp
                src/OpenCVInit.cpp
+               src/VideoID.cpp
                lib/xdg/xdg.cpp
                ${PLATFORM_FILES})
 target_include_directories(stormwatch PUBLIC ${CMAKE_SOURCE_DIR}/lib/xdg)

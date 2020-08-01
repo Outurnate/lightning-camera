@@ -20,7 +20,6 @@
 #include <restinio/all.hpp>
 #include <cmrc/cmrc.hpp>
 #include <spdlog/spdlog.h>
-#include <cpp-base64/base64.h>
 #include <nlohmann/json.hpp>
 
 CMRC_DECLARE(web_resources);
@@ -126,12 +125,12 @@ inline auto Server::CreateHandler()
     [this](auto req, auto)
     {
       json clips;
-      for (const std::string& clip : library.GetClips())
+      for (const auto& clip : library.GetClips())
         clips.push_back(json::object(
           {
-            { "title", base64_decode(clip) },
-            { "video", fmt::format("/clips/{}.mp4", clip) },
-            { "thumbnail", fmt::format("/clips/{}.jpeg", clip) }
+            { "title", clip.GetID() },
+            { "video", fmt::format("/clips/{}.mp4", clip.GetID()) },
+            { "thumbnail", fmt::format("/clips/{}.jpeg", clip.GetID()) }
           }));
 
       return init(req->create_response())
@@ -144,7 +143,7 @@ inline auto Server::CreateHandler()
     "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|mp4)",
     [this](auto req, auto params)
     {
-      auto clipPath = library.GetClipPath(fmt::format("{}.{}", params[0], params[1]));
+      auto clipPath = library.GetClipPath(VideoID(fmt::format("{}.{}", params[0], params[1])));
       if (clipPath)
       {
         auto resp = init(req->create_response());

@@ -20,11 +20,9 @@
 #include "Platform.hpp"
 
 #include <boost/asio/post.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
-#include <cpp-base64/base64.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <regex>
@@ -41,8 +39,7 @@ VideoLibrary::VideoLibrary()
 
 void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail)
 {
-  auto timestamp = boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::local_time());
-  auto encoded = base64_encode(reinterpret_cast<const unsigned char*>(timestamp.c_str()), timestamp.length());
+  auto encoded = VideoID().GetID();
   auto videoName = videoPath / fmt::format("{}.mp4", encoded);
   auto thumbName = videoPath / fmt::format("{}.jpeg", encoded);
   
@@ -64,25 +61,22 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
   });
 }
 
-std::vector<std::string> VideoLibrary::GetClips()
+std::vector<VideoID> VideoLibrary::GetClips()
 {
-  std::vector<std::string> clips;
+  std::vector<VideoID> clips;
   for (auto& clip : fs::directory_iterator(videoPath))
   {
     auto clipName = clip.path().filename();
     if (clipName.extension() == ".jpeg")
-      clips.push_back(clipName.stem().string());
+      clips.push_back(VideoID(clipName.stem().string()));
   }
   return clips;
 }
 
-std::optional<fs::path> VideoLibrary::GetClipPath(const std::string& name)
+std::optional<fs::path> VideoLibrary::GetClipPath(const VideoID& name)
 {
   std::regex base64("[A-Za-z0-9\\+/=]+\\.(jpeg|mp4)");
-  return std::regex_match(name, base64) && fs::exists(videoPath) ?
-    std::optional(videoPath / name) :
+  return std::regex_match(name.GetID(), base64) && fs::exists(videoPath) ?
+    std::optional(videoPath / name.GetID()) :
     std::nullopt;
 }
-
-// Hack
-#include <cpp-base64/base64.cpp>

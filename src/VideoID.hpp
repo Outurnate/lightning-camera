@@ -15,29 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef VIDEOLIBRARY_HPP
-#define VIDEOLIBRARY_HPP
+#ifndef VIDEOID_HPP
+#define VIDEOID_HPP
 
-#include "VideoID.hpp"
+#include <string>
 
-#include <opencv2/core/mat.hpp>
-#include <filesystem>
-#include <vector>
-#include <optional>
-#include <boost/asio/thread_pool.hpp>
-
-class VideoLibrary
+class VideoID
 {
 public:
-  VideoLibrary();
+  VideoID();
+  explicit VideoID(const std::string& id);
 
-  void SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail);
-  std::vector<VideoID> GetClips();
-  std::optional<std::filesystem::path> GetClipPath(const VideoID& name);
+  const std::string& GetID() const;
+  const std::string GetTimestamp() const;
 private:
-  boost::asio::thread_pool pool;
-  double fps;
-  std::filesystem::path videoPath;
+  std::string id;
 };
 
 #endif
