@@ -18,12 +18,10 @@
 #include "Server.hpp"
 
 #include <restinio/all.hpp>
-#include <nlohmann/json.hpp>
 #include <cmrc/cmrc.hpp>
 #include <spdlog/spdlog.h>
 #include <cpp-base64/base64.h>
-
-#include "Camera.hpp"
+#include <nlohmann/json.hpp>
 
 CMRC_DECLARE(web_resources);
 
@@ -47,18 +45,18 @@ inline std::string ReadFile(const cmrc::file& file)
   return contents;
 }
 
-inline void StaticDirectoryMapper(std::unique_ptr<router_t>& router, cmrc::embedded_filesystem& fs, std::string path, std::string mime)
+inline void StaticDirectoryMapper(std::unique_ptr<router_t>& router, std::shared_ptr<cmrc::embedded_filesystem> fs, std::string path, std::string mime)
 {
   router->http_get(
     fmt::format("/{}/([a-zA-Z0-9\\.:-]+)", path),
     [fs, path, mime](auto req, auto params)
     {
       auto requestedFile = fmt::format("{}/{}", path, std::string(params[0]));
-      if (fs.exists(requestedFile))
+      if (fs->exists(requestedFile))
       {
         return init(req->create_response())
           .append_header(restinio::http_field::content_type, mime)
-          .set_body(ReadFile(fs.open(requestedFile)))
+          .set_body(ReadFile(fs->open(requestedFile)))
           .done();
       }
       else
@@ -66,25 +64,26 @@ inline void StaticDirectoryMapper(std::unique_ptr<router_t>& router, cmrc::embed
     });
 }
 
-inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLibrary> library, std::shared_ptr<Camera> camera)
+inline auto Server::CreateHandler()
 {
   auto router = std::make_unique<router_t>();
+  std::shared_ptr<cmrc::embedded_filesystem> fs = std::make_shared<cmrc::embedded_filesystem>(cmrc::web_resources::get_filesystem());
 
   router->http_get(
     "/live.jpeg",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "image/jpeg")
-        .set_body(camera->GetPreview())
+        .set_body(camera.GetPreview())
         .done();
     });
   
   router->http_post(
     "/start",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
-      camera->Start();
+      camera.Start();
 
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
@@ -94,9 +93,9 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
   
   router->http_post(
     "/stop",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
-      camera->Stop();
+      camera.Stop();
       
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
@@ -106,15 +105,15 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
 
   router->http_get(
     "/stats",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
-      auto cameraStatus = camera->GetStatus();
+      auto cameraStatus = camera.GetStatus();
       json stats;
       stats["width"]       = cameraStatus.resolution.width;
       stats["height"]      = cameraStatus.resolution.height;
       stats["nominalFPS"]  = cameraStatus.nominalFPS;
       stats["measuredFPS"] = cameraStatus.measuredFPS;
-      stats["enabled"]     = camera->IsRunning();
+      stats["enabled"]     = camera.IsRunning();
 
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
@@ -124,10 +123,10 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
 
   router->http_get(
     "/clips",
-    [library](auto req, auto)
+    [this](auto req, auto)
     {
       json clips;
-      for (const std::string& clip : library->GetClips())
+      for (const std::string& clip : library.GetClips())
         clips.push_back(json::object(
           {
             { "title", base64_decode(clip) },
@@ -143,9 +142,9 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
   
   router->http_get(
     "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|mp4)",
-    [library](auto req, auto params)
+    [this](auto req, auto params)
     {
-      auto clipPath = library->GetClipPath(fmt::format("{}.{}", params[0], params[1]));
+      auto clipPath = library.GetClipPath(fmt::format("{}.{}", params[0], params[1]));
       if (clipPath)
       {
         auto resp = init(req->create_response());
@@ -165,11 +164,11 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
 
   router->http_get(
     "/settings",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
       json settings;
       for (auto property : CameraPropertyEntries)
-        settings[std::string(property.second)] = camera->GetProperty(property.first);
+        settings[std::string(property.second)] = camera.GetProperty(property.first);
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
         .set_body(settings.dump())
@@ -178,12 +177,12 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
 
   router->http_post(
     "/settings",
-    [camera](auto req, auto)
+    [this](auto req, auto)
     {
       const auto parameters = restinio::parse_query(req->header().query());
       for (auto property : CameraPropertyEntries)
-        camera->SetProperty(property.first, restinio::value_or(parameters, property.second, camera->GetProperty(property.first)));
-      camera->ApplyPropertyChange();
+        camera.SetProperty(property.first, restinio::value_or(parameters, property.second, camera.GetProperty(property.first)));
+      camera.ApplyPropertyChange();
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
         .set_body("{}")
@@ -201,7 +200,7 @@ inline auto CreateHandler(cmrc::embedded_filesystem fs, std::shared_ptr<VideoLib
     {
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/html; charset=utf-8")
-        .set_body(ReadFile(fs.open("index.html")))
+        .set_body(ReadFile(fs->open("index.html")))
         .done();
     });
 
@@ -244,11 +243,13 @@ public:
   }
 };
 
-void RunCameraServer()
+Server::Server()
+ : camera(library)
 {
-  std::shared_ptr<VideoLibrary> library = std::make_shared<VideoLibrary>();
-  std::shared_ptr<Camera> camera = std::make_shared<Camera>(library);
+}
 
+void Server::Run()
+{
   using traits_t =
     restinio::traits_t<
       restinio::asio_timer_manager_t,
@@ -259,5 +260,5 @@ void RunCameraServer()
     restinio::on_this_thread<traits_t>()
       .port(8080)
       .address("localhost")
-      .request_handler(CreateHandler(cmrc::web_resources::get_filesystem(), library, camera)));
+      .request_handler(CreateHandler()));
 }

@@ -17,6 +17,8 @@
 
 #include "VideoLibrary.hpp"
 
+#include "Platform.hpp"
+
 #include <boost/asio/post.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -27,31 +29,14 @@
 #include <spdlog/spdlog.h>
 #include <regex>
 
-#ifdef WINDOWS
-#include <shlobj.h>
-#endif
-
 namespace fs = std::filesystem;
-
-fs::path GetRootPath()
-{
-#ifdef WINDOWS
-  TCHAR path[MAX_PATH];
-  if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path)))
-    return fs::path(std::string(path));
-  else
-    return fs::current_path();
-#else
-  return fs::current_path();
-#endif
-}
 
 VideoLibrary::VideoLibrary()
   : pool(1),
-    videoPath(GetRootPath() / "videolib")
+    videoPath(GetDataPath() / "videolib")
 {
   if (!fs::exists(videoPath))
-    fs::create_directory(videoPath);
+    fs::create_directories(videoPath);
 }
 
 void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail)

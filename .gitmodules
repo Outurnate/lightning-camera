@@ -1,0 +1,3 @@
+[submodule "lib/xdg"]
+	path = lib/xdg
+	url = https://github.com/Outurnate/xdg.git

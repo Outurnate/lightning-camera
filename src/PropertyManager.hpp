@@ -15,22 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "Server.hpp"
-#include "OpenCVInit.hpp"
+#ifndef PROPERTYMANAGER_HPP
+#define PROPERTYMANAGER_HPP
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <magic_enum.hpp>
 
-int main(int, char**)
+enum class Property
 {
-  spdlog::set_level(spdlog::level::info);
+  EdgeDetectionSeconds,
+  DebounceSeconds,
+  TriggerDelay,
+  TriggerThreshold,
+  ClipLengthSeconds,
+  BayerMode,
+  Width,
+  Height
+};
+constexpr auto PropertyEntries = magic_enum::enum_entries<Property>();
 
-  auto opencv = spdlog::stdout_color_mt("opencv");
-  auto web = spdlog::stdout_color_mt("web");
-  auto camera = spdlog::stdout_color_mt("camera");
+class PropertyManager
+{
+};
 
-  SetupOpenCVLogging();
-  Server().Run();
-
-  return 0;
-}
+#endif

@@ -44,7 +44,9 @@ add_executable(stormwatch
                src/Camera.cpp
                src/Server.cpp
                src/OpenCVInit.cpp
+               lib/xdg/xdg.cpp
                ${PLATFORM_FILES})
+target_include_directories(stormwatch PUBLIC ${CMAKE_SOURCE_DIR}/lib/xdg)
 target_compile_definitions(stormwatch PUBLIC RESTINIO_USE_BOOST_ASIO)
 target_link_libraries(stormwatch web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog_header_only magic_enum::magic_enum)
 target_compile_options(stormwatch PRIVATE

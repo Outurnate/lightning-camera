@@ -18,6 +18,19 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-void RunCameraServer();
+#include "Camera.hpp"
+
+class Server
+{
+public:
+  Server();
+  
+  void Run();
+private:
+  inline auto CreateHandler();
+
+  Camera camera;
+  VideoLibrary library;
+};
 
 #endif

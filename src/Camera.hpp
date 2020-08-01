@@ -36,9 +36,21 @@ enum class CameraProperty
   EdgeDetectionSeconds,
   DebounceSeconds,
   TriggerDelay,
-  TriggerThreshold
+  TriggerThreshold,
+  ClipLengthSeconds,
+  BayerMode,
+  Width,
+  Height
 };
 constexpr auto CameraPropertyEntries = magic_enum::enum_entries<CameraProperty>();
+
+enum class BayerMode
+{
+  BG = 1,
+  GB = 2,
+  RG = 3,
+  GR = 4
+};
 
 template<typename T>
 struct SharedLockable
@@ -64,7 +76,7 @@ struct CameraStatus
 class Camera
 {
 public:
-  Camera(std::shared_ptr<VideoLibrary> videoLibrary);
+  Camera(VideoLibrary& videoLibrary);
   virtual ~Camera();
 
   std::vector<uchar> GetPreview();
@@ -72,14 +84,14 @@ public:
   void SetProperty(CameraProperty property, double value);
   void ApplyPropertyChange();
   CameraStatus GetStatus();
-  void Start(double clipLengthSeconds = 30);
+  void Start();
   void Stop();
   bool IsRunning();
 private:
-  void Run(double clipLengthSeconds = 30);
+  void Run(double clipLengthSeconds = 30, std::optional<BayerMode> bayerMode = std::nullopt, std::optional<cv::Size> requestedDimensions = std::nullopt);
 
   std::unique_ptr<VideoTrigger> trigger;
-  std::shared_ptr<VideoLibrary> library;
+  VideoLibrary& library;
   FPSCounter counter;
   std::map<CameraProperty, double> properties;
   SharedLockable<cv::Mat> preview;
