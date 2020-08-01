@@ -56,7 +56,9 @@ $(document).ready(function() {
           .replace("{thumbnail}", val.thumbnail)
           .replace("{url}", val.video)
           .replace("{thumbnail_id}", "thumbnail" + key)
-          .replace("{title_id}", "title" + key));
+          .replace("{title_id}", "title" + key)
+          .replace("{delete_id}", "delete" + key)
+          .replace("{item_id}", "mediaItem" + key));
         
         var showHandler = function()
         {
@@ -70,8 +72,25 @@ $(document).ready(function() {
           video.play();
         };
 
+        var deleteHandler = function()
+        {
+          $.ajax({
+            url: val.video,
+            type: 'DELETE',
+            success: function(result)
+            {
+              if (result)
+              {
+                var element = document.getElementById("mediaItem" + key);
+                element.parentNode.removeChild(element);
+              }
+            }
+          });
+        };
+
         $("#thumbnail" + key).click(showHandler);
         $("#title" + key).click(showHandler);
+        $("#delete" + key).click(deleteHandler);
       });
       $("#loader").hide();
     });

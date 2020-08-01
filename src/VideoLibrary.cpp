@@ -35,6 +35,8 @@ VideoLibrary::VideoLibrary()
 {
   if (!fs::exists(videoPath))
     fs::create_directories(videoPath);
+  
+  spdlog::get("library")->info("Using \"{}\" as library path", videoPath.string());
 }
 
 void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail)
@@ -57,11 +59,11 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
     cv::Mat thumbnail;
     cv::resize(clip[clip.size() - seekBackThumbnail], thumbnail, cv::Size(128, 96));
     cv::imwrite(thumbName.string(), thumbnail);
-    spdlog::get("camera")->info("Clip saved");
+    spdlog::get("library")->info("Clip saved as {}", videoName.string());
   });
 }
 
-std::vector<VideoID> VideoLibrary::GetClips()
+std::vector<VideoID> VideoLibrary::GetClips() const
 {
   std::vector<VideoID> clips;
   for (auto& clip : fs::directory_iterator(videoPath))
@@ -73,10 +75,28 @@ std::vector<VideoID> VideoLibrary::GetClips()
   return clips;
 }
 
-std::optional<fs::path> VideoLibrary::GetClipPath(const VideoID& name)
+std::optional<fs::path> VideoLibrary::GetClipPath(const VideoID& name) const
 {
   std::regex base64("[A-Za-z0-9\\+/=]+\\.(jpeg|mp4)");
   return std::regex_match(name.GetID(), base64) && fs::exists(videoPath) ?
     std::optional(videoPath / name.GetID()) :
     std::nullopt;
+}
+
+bool VideoLibrary::DeleteClip(const VideoID& name)
+{
+  auto path = GetClipPath(name);
+  if (path)
+  {
+    auto thumb = fs::path(path.value()).replace_extension("jpeg");
+    if (fs::exists(path.value()) && fs::exists(thumb))
+    {
+      fs::remove(path.value());
+      fs::remove(thumb);
+
+      return true;
+    }
+  }
+
+  return false;
 }

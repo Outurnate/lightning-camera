@@ -12,6 +12,7 @@ cmrc_add_resource_library(web_resources
                           web/js/bootstrap.min.js
                           web/js/jquery-3.5.1.min.js
                           web/svg/data-transfer-download.svg
+                          web/svg/trash.svg
                           web/png/loader.png
                           web/png/favicon.png)
 

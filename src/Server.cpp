@@ -128,7 +128,7 @@ inline auto Server::CreateHandler()
       for (const auto& clip : library.GetClips())
         clips.push_back(json::object(
           {
-            { "title", clip.GetID() },
+            { "title", clip.GetTimestamp() },
             { "video", fmt::format("/clips/{}.mp4", clip.GetID()) },
             { "thumbnail", fmt::format("/clips/{}.jpeg", clip.GetID()) }
           }));
@@ -159,6 +159,18 @@ inline auto Server::CreateHandler()
       }
       else
         return restinio::request_rejected();
+    });
+
+  router->http_delete(
+    "/clips/([A-Za-z0-9\\+/=]+)\\.(mp4)",
+    [this](auto req, auto params)
+    {
+      auto result = library.DeleteClip(VideoID(fmt::format("{}.{}", params[0], params[1])));
+
+      return init(req->create_response())
+        .append_header(restinio::http_field::content_type, "text/plain; charset=utf-8")
+        .set_body(result ? "true" : "false")
+        .done();
     });
 
   router->http_get(

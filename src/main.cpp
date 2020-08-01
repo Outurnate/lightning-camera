@@ -25,9 +25,10 @@ int main(int, char**)
 {
   spdlog::set_level(spdlog::level::info);
 
-  auto opencv = spdlog::stdout_color_mt("opencv");
-  auto web = spdlog::stdout_color_mt("web");
-  auto camera = spdlog::stdout_color_mt("camera");
+  auto opencv  = spdlog::stdout_color_mt("opencv");
+  auto web     = spdlog::stdout_color_mt("web");
+  auto camera  = spdlog::stdout_color_mt("camera");
+  auto library = spdlog::stdout_color_mt("library");
 
   SetupOpenCVLogging();
   Server().Run();

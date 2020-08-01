@@ -36,11 +36,12 @@
 
 <body>
   <script id="video-template" type="text/x-custom-template">
-    <div class="media">
+    <div class="media" id="{item_id}">
       <a href="#" id="{thumbnail_id}"><img class="align-self-center mr-3 thumbnail" src="{thumbnail}" alt="Video Thumbnail" data-toggle="modal" data-target="#videoModal" /></a>
       <div class="media-body">
         <a href="#" id="{title_id}" data-toggle="modal" data-target="#videoModal"><h6 class="mt-0">{title}</h5></a>
-        <a href="{url}" download /><img class="icon" src="svg/data-transfer-download.svg" alt="Video Download" /></a>
+        <a href="{url}" download><img class="icon" src="svg/data-transfer-download.svg" alt="Video Download" /></a>
+        <a href="#" id="{delete_id}"><img class="icon" src="svg/trash.svg" alt="Delete Video" /></a>
       </div>
     </div>
   </script>

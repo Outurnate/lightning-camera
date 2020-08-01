@@ -32,8 +32,9 @@ public:
   VideoLibrary();
 
   void SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail);
-  std::vector<VideoID> GetClips();
-  std::optional<std::filesystem::path> GetClipPath(const VideoID& name);
+  std::vector<VideoID> GetClips() const;
+  std::optional<std::filesystem::path> GetClipPath(const VideoID& name) const;
+  bool DeleteClip(const VideoID& name);
 private:
   boost::asio::thread_pool pool;
   double fps;

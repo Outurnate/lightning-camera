@@ -23,7 +23,7 @@
 VideoID::VideoID()
 {
   auto timestamp = boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::local_time());
-  auto encoded = base64_encode(reinterpret_cast<const unsigned char*>(timestamp.c_str()), timestamp.length());
+  id = base64_encode(reinterpret_cast<const unsigned char*>(timestamp.c_str()), timestamp.length());
 }
 
 VideoID::VideoID(const std::string& id)
