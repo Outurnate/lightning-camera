@@ -218,7 +218,7 @@ inline auto Server::CreateHandler()
   router->non_matched_request_handler(
     [](auto req)
     {
-      return req->create_response(restinio::status_not_found())
+      return init(req->create_response(restinio::status_not_found()))
         .connection_close()
         .done();
     });
