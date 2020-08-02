@@ -24,14 +24,37 @@
 #include <filesystem>
 #include <vector>
 #include <optional>
+#include <memory>
 #include <boost/asio/thread_pool.hpp>
+
+class VideoSaveJob
+{
+public:
+  VideoSaveJob(
+    std::shared_ptr<std::vector<cv::Mat>> data,
+    cv::Size dimensions,
+    double fps,
+    size_t seekBackThumbnail,
+    std::filesystem::path videoPath,
+    std::filesystem::path thumbPath);
+
+  void operator()();
+private:
+  std::shared_ptr<std::vector<cv::Mat>> data;
+  cv::Size dimensions;
+  double fps;
+
+  size_t seekBackThumbnail;
+  std::filesystem::path videoPath;
+  std::filesystem::path thumbPath;
+};
 
 class VideoLibrary
 {
 public:
   VideoLibrary();
 
-  void SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail);
+  void SaveClip(std::shared_ptr<std::vector<cv::Mat>> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail);
   std::vector<VideoID> GetClips() const;
   std::optional<std::filesystem::path> GetClipPath(const VideoID& name) const;
   bool DeleteClip(const VideoID& name);

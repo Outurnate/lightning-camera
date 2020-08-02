@@ -129,7 +129,7 @@ inline auto Server::CreateHandler()
         clips.push_back(json::object(
           {
             { "title", clip.GetTimestamp() },
-            { "video", fmt::format("/clips/{}.mp4", clip.GetID()) },
+            { "video", fmt::format("/clips/{}.webm", clip.GetID()) },
             { "thumbnail", fmt::format("/clips/{}.jpeg", clip.GetID()) }
           }));
 
@@ -140,7 +140,7 @@ inline auto Server::CreateHandler()
     });
   
   router->http_get(
-    "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|mp4)",
+    "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|webm)",
     [this](auto req, auto params)
     {
       auto clipPath = library.GetClipPath(VideoID(fmt::format("{}.{}", params[0], params[1])));
@@ -151,7 +151,7 @@ inline auto Server::CreateHandler()
         if (params[1] == "jpeg")
           resp.append_header(restinio::http_field::content_type, "image/jpeg");
         else
-          resp.append_header(restinio::http_field::content_type, "video/mp4");
+          resp.append_header(restinio::http_field::content_type, "video/webm");
         
         return resp
           .set_body(restinio::sendfile(clipPath.value().string()))

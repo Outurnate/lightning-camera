@@ -228,9 +228,9 @@ void Camera::Run(double clipLengthSeconds, std::optional<BayerMode> bayerMode, s
     // Check if there was an event
     if (trigger->ShouldCapture(frame))
     {
-      std::vector<cv::Mat> clip(frames.size() + 1);
+      std::shared_ptr<std::vector<cv::Mat>> clip = std::make_shared<std::vector<cv::Mat>>(frames.size() + 1);
       for (size_t i = 0; i < (frames.size() + 1); ++i)
-        clip.push_back(frames[(frameIndex + i) % frames.size()].clone());
+        clip->push_back(frames[(frameIndex + i) % frames.size()].clone());
       library.SaveClip(clip, status.object.resolution, status.object.nominalFPS, trigger->GetSeekForThumbnail());
     }
     
