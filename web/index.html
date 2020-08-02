@@ -94,6 +94,33 @@
               How much brightness has to increase over the noise floor to trigger a recording
             </small>
           </div>
+          <div class="form-group">
+            <label for="inputBayerMode">Bayer Filter Mode</label>
+            <select id="inputBayerMode" class="form-control" aria-describedby="helpBayerMode" required>
+              <option value="0">Disabled</option>
+              <option value="1">Blue-Green</option>
+              <option value="2">Green-Blue</option>
+              <option value="3">Red-Green</option>
+              <option value="4">Green-Red</option>
+            </select>
+            <small id="helpBayerMode" class="text-muted">
+              If the camera does not remove the bayer filter from the CCD, it can be done in software
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="inputWidth">Frame Width</label>
+            <input type="text" id="inputWidth" class="form-control" aria-describedby="helpWidth" required />
+            <small id="helpWidth" class="text-muted">
+              Size of the frame (width)
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="inputHeight">Frame Height</label>
+            <input type="text" id="inputHeight" class="form-control" aria-describedby="helpHeight" required />
+            <small id="helpHeight" class="text-muted">
+              Size of the frame (height)
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

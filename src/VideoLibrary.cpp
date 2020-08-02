@@ -47,6 +47,7 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
   
   boost::asio::post(pool, [clip, clipSize, fps, videoName, thumbName, seekBackThumbnail]()
   {
+    spdlog::get("library")->info("Started save for clip {}", videoName.string());
 #ifdef WINDOWS
     cv::VideoWriter output(videoName.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps, clipSize);
 #else
@@ -61,6 +62,7 @@ void VideoLibrary::SaveClip(std::vector<cv::Mat> clip, cv::Size clipSize, double
     cv::imwrite(thumbName.string(), thumbnail);
     spdlog::get("library")->info("Clip saved as {}", videoName.string());
   });
+  spdlog::get("library")->info("Requested save for clip {}", videoName.string());
 }
 
 std::vector<VideoID> VideoLibrary::GetClips() const

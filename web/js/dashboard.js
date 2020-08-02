@@ -105,6 +105,9 @@ $(document).ready(function() {
     $("#inputDebounceSeconds").val(data.DebounceSeconds);
     $("#inputTriggerDelay").val(data.TriggerDelay);
     $("#inputTriggerThreshold").val(data.TriggerThreshold);
+    $("#inputBayerMode").val(data.BayerMode);
+    $("#inputWidth").val(data.Width);
+    $("#inputHeight").val(data.Height);
   });
 
   $("#saveSettings").click(function()
@@ -114,7 +117,10 @@ $(document).ready(function() {
         EdgeDetectionSeconds: $("#inputEdgeDetectionSeconds").val(),
         DebounceSeconds: $("#inputDebounceSeconds").val(),
         TriggerDelay: $("#inputTriggerDelay").val(),
-        TriggerThreshold: $("#inputTriggerThreshold").val()
+        TriggerThreshold: $("#inputTriggerThreshold").val(),
+        BayerMode: $("#inputBayerMode").val(),
+        Width: $("#inputWidth").val(),
+        Height: $("#inputHeight").val()
       }
     );
   });

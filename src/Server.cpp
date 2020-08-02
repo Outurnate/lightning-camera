@@ -188,9 +188,9 @@ inline auto Server::CreateHandler()
 
   router->http_post(
     "/settings",
-    [this](auto req, auto)
+    [this](restinio::request_handle_t req, auto)
     {
-      const auto parameters = restinio::parse_query(req->header().query());
+      const auto parameters = restinio::parse_query(req->body());
       for (auto property : CameraPropertyEntries)
         camera.SetProperty(property.first, restinio::value_or(parameters, property.second, camera.GetProperty(property.first)));
       camera.ApplyPropertyChange();

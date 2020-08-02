@@ -108,6 +108,13 @@ void Camera::Start()
   std::optional<cv::Size> requestedDimensions = (width > 0 && height > 0) ?
     std::optional<cv::Size>(cv::Size(width, height)) :
     std::nullopt;
+  
+  spdlog::get("camera")->info("Requested camera start with following parameters");
+  spdlog::get("camera")->info("- Bayer Mode: {}", bayerMode ? magic_enum::enum_name<BayerMode>(bayerMode.value()) : "Disabled");
+  if (requestedDimensions)
+    spdlog::get("camera")->info("- Dimensions: {}x{}", requestedDimensions.value().width, requestedDimensions.value().height);
+  else
+    spdlog::get("camera")->info("- Dimensions: auto");
 
   std::unique_lock(cameraThread.mutex);
   if (cameraThread.object.get_id() == std::thread::id())
