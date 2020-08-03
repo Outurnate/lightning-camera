@@ -2,6 +2,25 @@ cmake_minimum_required(VERSION 3.10)
 
 project(stormwatch)
 
+include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+externalproject_add(ffmpeg-cpp-external
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/ffmpeg-cpp
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ffmpeg-cpp
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+)
+if(WIN32)
+  set(prefix "")
+  set(suffix ".lib")
+elseif(APPLE)
+  set(prefix "lib")
+  set(suffix ".a")
+else()
+  set(prefix "lib")
+  set(suffix ".a")
+endif()
+add_library(ffmpeg-cpp SHARED IMPORTED ${CMAKE_CURRENT_BINARY_DIR}/ffmpeg-cpp/src/ffmpeg-cpp-build/lib/${prefix}ffmpegcpp${suffix})
+
 include(cmake/CMakeRC.cmake)
 cmrc_add_resource_library(web_resources
                           WHENCE web
@@ -32,6 +51,8 @@ find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
+find_package(FFMPEG REQUIRED)
+find_package(libffi CONFIG REQUIRED) # i dont want this
 
 if(WIN32)
   set(PLATFORM_FILES platform/stormwatch.rc)
@@ -46,15 +67,18 @@ add_executable(stormwatch
                src/Server.cpp
                src/OpenCVInit.cpp
                src/VideoID.cpp
+               src/VideoSaveJob.cpp
                lib/xdg/xdg.cpp
                ${PLATFORM_FILES})
 target_include_directories(stormwatch PUBLIC ${CMAKE_SOURCE_DIR}/lib/xdg)
 target_compile_definitions(stormwatch PUBLIC RESTINIO_USE_BOOST_ASIO)
-target_link_libraries(stormwatch web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog_header_only magic_enum::magic_enum)
+list(REMOVE_ITEM FFMPEG_LIBRARIES "NOTFOUND")
+target_link_libraries(stormwatch web_resources ${OpenCV_LIBS} Threads::Threads Boost::system Boost::date_time restinio::restinio nlohmann_json nlohmann_json::nlohmann_json spdlog::spdlog_header_only magic_enum::magic_enum libffi pcre ${FFMPEG_LIBRARIES} va-drm va va-x11 vdpau /usr/share/vcpkg/installed/x64-linux/lib/libx264.a)
 target_compile_options(stormwatch PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
 )
+add_dependencies(stormwatch ffmpeg-cpp-external)
 
 if(WIN32)
   target_compile_definitions(stormwatch PUBLIC WINDOWS)

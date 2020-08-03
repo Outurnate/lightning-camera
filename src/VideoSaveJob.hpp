@@ -15,29 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef VIDEOLIBRARY_HPP
-#define VIDEOLIBRARY_HPP
+#ifndef VIDEOSAVEJOB_HPP
+#define VIDEOSAVEJOB_HPP
 
-#include "VideoID.hpp"
-#include "VideoSaveJob.hpp"
+#include <memory>
+#include <filesystem>
+#include <opencv2/core/mat.hpp>
 
-#include <vector>
-#include <optional>
-#include <boost/asio/thread_pool.hpp>
-
-class VideoLibrary
+class VideoSaveJob
 {
 public:
-  VideoLibrary();
+  VideoSaveJob(
+    std::shared_ptr<std::vector<cv::Mat>> data,
+    cv::Size dimensions,
+    double fps,
+    size_t seekBackThumbnail,
+    std::filesystem::path videoPath,
+    std::filesystem::path thumbPath);
 
-  void SaveClip(std::shared_ptr<std::vector<cv::Mat>> clip, cv::Size clipSize, double fps, size_t seekBackThumbnail);
-  std::vector<VideoID> GetClips() const;
-  std::optional<std::filesystem::path> GetClipPath(const VideoID& name) const;
-  bool DeleteClip(const VideoID& name);
+  void operator()();
 private:
-  boost::asio::thread_pool pool;
+  std::shared_ptr<std::vector<cv::Mat>> data;
+  cv::Size dimensions;
   double fps;
+
+  size_t seekBackThumbnail;
   std::filesystem::path videoPath;
+  std::filesystem::path thumbPath;
 };
 
 #endif

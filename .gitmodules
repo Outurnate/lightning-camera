@@ -1,3 +1,6 @@
 [submodule "lib/xdg"]
 	path = lib/xdg
 	url = https://github.com/Outurnate/xdg.git
+[submodule "lib/ffmpeg-cpp"]
+	path = lib/ffmpeg-cpp
+	url = https://github.com/Outurnate/ffmpeg-cpp.git
