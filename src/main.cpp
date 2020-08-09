@@ -17,6 +17,7 @@
 
 #include "Server.hpp"
 #include "OpenCVInit.hpp"
+#include "FFmpegInit.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -29,8 +30,10 @@ int main(int, char**)
   auto web     = spdlog::stdout_color_mt("web");
   auto camera  = spdlog::stdout_color_mt("camera");
   auto library = spdlog::stdout_color_mt("library");
+  auto ffmpeg  = spdlog::stdout_color_mt("ffmpeg");
 
   SetupOpenCVLogging();
+  SetupFFmpegLogging();
   Server().Run();
 
   return 0;

@@ -37,9 +37,9 @@ Camera::Camera(VideoLibrary& videoLibrary)
   {
     { CameraProperty::EdgeDetectionSeconds, 2.0 },
     { CameraProperty::DebounceSeconds, 1.0 },
-    { CameraProperty::TriggerDelay, 5.0 },
+    { CameraProperty::TriggerDelay, 1.0 },
     { CameraProperty::TriggerThreshold, 15.0 },
-    { CameraProperty::ClipLengthSeconds, 30.0 },
+    { CameraProperty::ClipLengthSeconds, 5.0 },
     { CameraProperty::BayerMode, 0.0 },
     { CameraProperty::Width, 0.0 },
     { CameraProperty::Height, 0.0 }

@@ -20,13 +20,7 @@
 #include <spdlog/spdlog.h>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/videoio.hpp>
-
-extern "C"
-{
-  #include <libavcodec/avcodec.h>
-  #include <libavformat/avformat.h>
-}
+#include <ffmpegcpp/ffmpegcpp.h>
 
 // Translated to constexpr from
 // https://rosettacode.org/wiki/Convert_decimal_number_to_rational#C
@@ -102,6 +96,11 @@ void VideoSaveJob::operator()()
   auto rationalFPS = NearestRational(fps);
   spdlog::get("library")->info("Estimated FPS at {}/{}", rationalFPS.num, rationalFPS.den);
 
+  ffmpegcpp::Muxer muxer(videoPath.string());
+  ffmpegcpp::VideoCodec* codec = new ffmpegcpp::VP9Codec();
+  ffmpegcpp::VideoEncoder encoder(codec, &muxer, rationalFPS, AV_PIX_FMT_BGRA);
+  ffmpegcpp::RawVideoDataSource output(dimensions.width, dimensions.height, AV_PIX_FMT_BGRA, int(fps), &encoder);
+
   unsigned i = 0;
   for (const cv::Mat& srcFrame : *data)
   {
@@ -110,8 +109,12 @@ void VideoSaveJob::operator()()
       ++i;
       continue;
     }
+    cv::Mat dstFrame;
+    cv::cvtColor(srcFrame, dstFrame, cv::COLOR_BGR2BGRA);
+    output.WriteFrame(dstFrame.data, 4 * output.GetWidth());
     spdlog::get("library")->trace("Wrote frame {}/{}", i++, data->size());
   }
+  output.Close();
 
   cv::Mat originalThumbnail = (*data)[data->size() - seekBackThumbnail];
   cv::Mat thumbnail;
