@@ -1,46 +1,35 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(stormwatch)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT supported OUTPUT error)
+# Setup Compiler Options
 
+# Enable LTO/IPO
+include(CheckIPOSupported)
+check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_ERROR)
+if(IPO_SUPPORTED)
+  message(STATUS "IPO / LTO enabled")
+else()
+  message(STATUS "IPO / LTO not supported: <${IPO_ERROR}>")
+endif()
+
+# Enable C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Force colored output under Ninja
+add_compile_options(
+  $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+  $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
+)
+
 add_subdirectory(lib)
 add_subdirectory(web)
-
-add_executable(stormwatch
-               src/main.cpp
-               src/VideoLibrary.cpp
-               src/VideoTrigger.cpp
-               src/FPSCounter.cpp
-               src/Camera.cpp
-               src/Server.cpp
-               src/OpenCVInit.cpp
-               src/FFmpegInit.cpp
-               src/VideoID.cpp
-               src/VideoSaveJob.cpp
-               $<$<PLATFORM_ID:Windows>:platform/stormwatch.rc>)
-target_compile_definitions(stormwatch PUBLIC
-                           RESTINIO_USE_BOOST_ASIO
-                           $<$<PLATFORM_ID:Windows>:WINDOWS>)
-target_link_libraries(stormwatch ${CONAN_LIBS} web_resources xdg ffmpeg-cpp cpp-base64)
-target_compile_options(stormwatch PRIVATE
-  $<$<CXX_COMPILER_ID:MSVC>:/W4>
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
-)
-if(supported)
-  message(STATUS "IPO / LTO enabled")
-  set_property(TARGET stormwatch PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-else()
-  message(STATUS "IPO / LTO not supported: <${error}>")
-endif()
+add_subdirectory(src)
 
 install(TARGETS stormwatch DESTINATION .)
 install(FILES LICENSE DESTINATION .)
