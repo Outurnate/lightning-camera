@@ -19,11 +19,42 @@
 #include "OpenCVInit.hpp"
 #include "FFmpegInit.hpp"
 
+#include <iostream>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/parsers.hpp>
 
-int main(int, char**)
+namespace po = boost::program_options;
+
+int main(int argc, char** argv)
 {
+  std::cout <<
+    "stormwatch  Copyright (C) 2020  Joe Dillon" << std::endl <<
+    "This program comes with ABSOLUTELY NO WARRANTY" << std::endl <<
+    "This is free software, and you are welcome to redistribute it" << std::endl <<
+    "under certain conditions" << std::endl << std::endl;
+  
+  uint16_t port;
+  std::string address;
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "show help message")
+    ("port", po::value(&port)->default_value(8080), "port number to listen on")
+    ("address", po::value(&address)->default_value("localhost"), "address to bind to")
+  ;
+
+  po::variables_map v;
+  po::store(po::parse_command_line(argc, argv, desc), v);
+  po::notify(v);
+
+  if (v.count("help"))
+  {
+    std::cout << desc << std::endl;
+    return 1;
+  }
+
   spdlog::set_level(spdlog::level::info);
 
   auto opencv  = spdlog::stdout_color_mt("opencv");
@@ -34,7 +65,7 @@ int main(int, char**)
 
   SetupOpenCVLogging();
   SetupFFmpegLogging();
-  Server().Run();
+  Server().Run(address, port);
 
   return 0;
 }

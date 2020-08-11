@@ -18,7 +18,7 @@
 #include "VideoID.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <cpp-base64/base64.h>
+#include <base64.h>
 
 VideoID::VideoID()
 {
@@ -42,6 +42,3 @@ const std::string VideoID::GetTimestamp() const
 {
   return base64_decode(id);
 }
-
-// Hack
-#include <cpp-base64/base64.cpp>

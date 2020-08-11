@@ -259,7 +259,7 @@ Server::Server()
 {
 }
 
-void Server::Run()
+void Server::Run(const std::string& address, uint16_t port)
 {
   using traits_t =
     restinio::traits_t<
@@ -269,7 +269,7 @@ void Server::Run()
 
   restinio::run(
     restinio::on_this_thread<traits_t>()
-      .port(8080)
-      .address("localhost")
+      .port(port)
+      .address(address)
       .request_handler(CreateHandler()));
 }

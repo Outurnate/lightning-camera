@@ -99,7 +99,7 @@ void VideoSaveJob::operator()()
   ffmpegcpp::Muxer muxer(videoPath.string());
   ffmpegcpp::VideoCodec* codec = new ffmpegcpp::VP9Codec();
   ffmpegcpp::VideoEncoder encoder(codec, &muxer, rationalFPS, AV_PIX_FMT_BGRA);
-  ffmpegcpp::RawVideoDataSource output(dimensions.width, dimensions.height, AV_PIX_FMT_BGRA, int(fps), &encoder);
+  ffmpegcpp::RawVideoDataSource output(dimensions.width, dimensions.height, AV_PIX_FMT_BGRA, int(fps), &encoder); //TODO
 
   unsigned i = 0;
   for (const cv::Mat& srcFrame : *data)

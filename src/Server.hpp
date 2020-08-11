@@ -25,7 +25,7 @@ class Server
 public:
   Server();
   
-  void Run();
+  void Run(const std::string& address, uint16_t port);
 private:
   inline auto CreateHandler();
 

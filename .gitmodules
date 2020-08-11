@@ -4,3 +4,6 @@
 [submodule "lib/ffmpeg-cpp"]
 	path = lib/ffmpeg-cpp
 	url = https://github.com/Outurnate/ffmpeg-cpp.git
+[submodule "lib/cpp-base64"]
+	path = lib/cpp-base64
+	url = https://github.com/ReneNyffenegger/cpp-base64.git
