@@ -22,7 +22,6 @@
 #include <boost/asio/post.hpp>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
-#include <regex>
 
 namespace fs = std::filesystem;
 
@@ -61,27 +60,34 @@ std::vector<VideoID> VideoLibrary::GetClips() const
   return clips;
 }
 
-std::optional<fs::path> VideoLibrary::GetClipPath(const VideoID& name) const
+std::optional<fs::path> VideoLibrary::GetClipThumbnailPath(const VideoID& name) const
 {
-  std::regex base64("[A-Za-z0-9\\+/=]+\\.(jpeg|webm)");
-  return std::regex_match(name.GetID(), base64) && fs::exists(videoPath) ?
-    std::optional(videoPath / name.GetID()) :
+  return fs::exists(videoPath) ?
+    std::optional((videoPath / name.GetID()).replace_extension("jpeg")) :
+    std::nullopt;
+}
+
+std::optional<fs::path> VideoLibrary::GetClipVideoPath(const VideoID& name) const
+{
+  return fs::exists(videoPath) ?
+    std::optional((videoPath / name.GetID()).replace_extension("webm")) :
     std::nullopt;
 }
 
 bool VideoLibrary::DeleteClip(const VideoID& name)
 {
-  auto path = GetClipPath(name);
-  if (path)
+  auto path = GetClipVideoPath(name);
+  bool success = false;
+  if (path && fs::exists(path.value()))
   {
-    auto thumb = fs::path(path.value()).replace_extension("jpeg");
-    if (fs::exists(path.value()) && fs::exists(thumb))
-    {
-      fs::remove(path.value());
-      fs::remove(thumb);
-
-      return true;
-    }
+    fs::remove(path.value());
+    success = true;
+  }
+  path = GetClipThumbnailPath(name);
+  if (path && fs::exists(path.value()))
+  {
+    fs::remove(path.value());
+    return success;
   }
 
   return false;

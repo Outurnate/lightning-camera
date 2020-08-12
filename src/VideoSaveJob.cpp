@@ -97,15 +97,18 @@ void VideoSaveJob::operator()()
   spdlog::get("library")->info("Estimated FPS at {}/{}", rationalFPS.num, rationalFPS.den);
 
   ffmpegcpp::Muxer muxer(videoPath.string());
-  ffmpegcpp::VideoCodec* codec = new ffmpegcpp::VP9Codec();
-  ffmpegcpp::VideoEncoder encoder(codec, &muxer, rationalFPS, AV_PIX_FMT_BGRA);
-  ffmpegcpp::RawVideoDataSource output(dimensions.width, dimensions.height, AV_PIX_FMT_BGRA, int(fps), &encoder); //TODO
+  ffmpegcpp::VideoCodec codec("libvpx");
+  codec.SetBitRate(0);
+  codec.SetOption("crf", 4);
+  ffmpegcpp::VideoEncoder encoder(&codec, &muxer, rationalFPS, AV_PIX_FMT_BGRA);
+  ffmpegcpp::RawVideoDataSource output(dimensions.width, dimensions.height, AV_PIX_FMT_BGRA, rationalFPS, &encoder);
 
   unsigned i = 0;
   for (const cv::Mat& srcFrame : *data)
   {
     if (srcFrame.empty())
     {
+      spdlog::get("library")->trace("Empty frame {}", i);
       ++i;
       continue;
     }

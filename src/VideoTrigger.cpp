@@ -56,7 +56,7 @@ bool VideoTrigger::ShouldCapture(const cv::Mat& frame)
   if (currentDebounce != 0)
     --currentDebounce;
 
-  if (!isDelayed && currentDebounce == 0 && threshold > mean && (threshold - mean) > TRIP_THRESHOLD)
+  if (thresholdFilled && !isDelayed && currentDebounce == 0 && threshold > mean && (threshold - mean) > TRIP_THRESHOLD)
   {
     currentDebounce = DEBOUNCE_COUNT;
     delayCount = POST_TRIGGER_COUNT;
@@ -69,7 +69,7 @@ bool VideoTrigger::ShouldCapture(const cv::Mat& frame)
   else if (isDelayed)
   {
     isDelayed = false;
-    return thresholdFilled; // don't trigger unless we have a full set of samples
+    return true;
   }
 
   return false;

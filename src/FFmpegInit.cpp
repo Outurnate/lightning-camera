@@ -3,6 +3,20 @@
 #include <ffmpegcpp/ffmpegcpp.h>
 #include <spdlog/spdlog.h>
 
+void strip_newlines(std::string& s)
+{
+  std::string::size_type i = 0;
+  while (i < s.length())
+  {
+    i = s.find('\n', i);
+    if (i == std::string::npos)
+    {
+      break;
+    }
+    s.erase(i);
+  }
+}
+
 void log_callback(void* ptr, int level, const char* fmt, va_list args)
 {
   (void)ptr;
@@ -11,6 +25,7 @@ void log_callback(void* ptr, int level, const char* fmt, va_list args)
   char rawMessage[MAX_CHAR];
   vsnprintf(rawMessage, MAX_CHAR, fmt, args);
   std::string message(rawMessage);
+  strip_newlines(message);
 
   switch(level)
   {

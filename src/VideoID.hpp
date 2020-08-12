@@ -25,6 +25,7 @@ class VideoID
 public:
   VideoID();
   explicit VideoID(const std::string& id);
+  explicit VideoID(const std::string_view id);
 
   const std::string& GetID() const;
   const std::string GetTimestamp() const;

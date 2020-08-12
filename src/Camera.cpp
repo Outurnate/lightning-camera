@@ -20,10 +20,16 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
+#include <fstream>
+
+#include "Platform.hpp"
 
 #ifdef WINDOWS
 #define ATOMIC_FLAG_INIT
 #endif
+
+using json = nlohmann::json;
 
 Camera::Camera(VideoLibrary& videoLibrary)
   : library(videoLibrary),
@@ -37,20 +43,58 @@ Camera::Camera(VideoLibrary& videoLibrary)
   {
     { CameraProperty::EdgeDetectionSeconds, 2.0 },
     { CameraProperty::DebounceSeconds, 1.0 },
-    { CameraProperty::TriggerDelay, 1.0 },
+    { CameraProperty::TriggerDelay, 5.0 },
     { CameraProperty::TriggerThreshold, 15.0 },
-    { CameraProperty::ClipLengthSeconds, 5.0 },
+    { CameraProperty::ClipLengthSeconds, 30.0 },
     { CameraProperty::BayerMode, 0.0 },
     { CameraProperty::Width, 0.0 },
     { CameraProperty::Height, 0.0 }
   });
 
+  LoadSettings();
   ApplyPropertyChange();
 }
 
 Camera::~Camera()
 {
-  Stop();
+  if (IsRunning())
+    Stop();
+}
+
+void Camera::LoadSettings()
+{
+  std::filesystem::path settingsPath = GetConfigPath() / "settings.json";
+  if (std::filesystem::exists(settingsPath))
+  {
+    try
+    {
+      json settings;
+      {
+        std::ifstream settingsFile(settingsPath, std::ios_base::binary);
+        settingsFile >> settings;
+      }
+      for (const auto& prop : CameraPropertyEntries)
+        if (settings.contains(prop.second))
+          SetProperty(prop.first, settings[std::string(prop.second)]);
+    }
+    catch (json::exception& e)
+    {
+      spdlog::get("settings")->error("error parsing settings: {}", e.what());
+      spdlog::get("settings")->info("resetting to default");
+    }
+  }
+}
+
+void Camera::SaveSettings()
+{
+  json settings;
+  for (const auto& prop : CameraPropertyEntries)
+    settings[std::string(prop.second)] = GetProperty(prop.first);
+  
+  if (!std::filesystem::exists(GetConfigPath()))
+    std::filesystem::create_directories(GetConfigPath());
+  std::ofstream settingsFile(GetConfigPath() / "settings.json", std::ios_base::binary);
+  settingsFile << settings;
 }
 
 double Camera::GetProperty(CameraProperty property) const
@@ -65,6 +109,7 @@ void Camera::SetProperty(CameraProperty property, double value)
 
 void Camera::ApplyPropertyChange()
 {
+  SaveSettings();
   applySettings.clear();
 }
 
@@ -185,7 +230,7 @@ void Camera::Run(double clipLengthSeconds, std::optional<BayerMode> bayerMode, s
     
     if (frame.empty())
     {
-      spdlog::get("camera")->critical("ERROR! blank frame grabbed");
+      spdlog::get("camera")->warn("ERROR! blank frame grabbed");
       continue;
     }
 
@@ -228,7 +273,8 @@ void Camera::Run(double clipLengthSeconds, std::optional<BayerMode> bayerMode, s
     // Check if there was an event
     if (trigger->ShouldCapture(frame))
     {
-      std::shared_ptr<std::vector<cv::Mat>> clip = std::make_shared<std::vector<cv::Mat>>(frames.size() + 1);
+      std::shared_ptr<std::vector<cv::Mat>> clip = std::make_shared<std::vector<cv::Mat>>();
+      clip->reserve(frames.size() + 1);
       for (size_t i = 0; i < (frames.size() + 1); ++i)
         clip->push_back(frames[(frameIndex + i) % frames.size()].clone());
       library.SaveClip(clip, status.object.resolution, status.object.nominalFPS, trigger->GetSeekForThumbnail());

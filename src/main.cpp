@@ -38,11 +38,13 @@ int main(int argc, char** argv)
   
   uint16_t port;
   std::string address;
+  bool verbose;
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
     ("port", po::value(&port)->default_value(8080), "port number to listen on")
     ("address", po::value(&address)->default_value("localhost"), "address to bind to")
+    ("verbose", po::bool_switch(&verbose)->default_value(false), "verbose logging")
   ;
 
   po::variables_map v;
@@ -55,13 +57,14 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  spdlog::set_level(spdlog::level::info);
+  spdlog::set_level(verbose ? spdlog::level::trace : spdlog::level::info);
 
-  auto opencv  = spdlog::stdout_color_mt("opencv");
-  auto web     = spdlog::stdout_color_mt("web");
-  auto camera  = spdlog::stdout_color_mt("camera");
-  auto library = spdlog::stdout_color_mt("library");
-  auto ffmpeg  = spdlog::stdout_color_mt("ffmpeg");
+  auto opencv   = spdlog::stdout_color_mt("opencv");
+  auto web      = spdlog::stdout_color_mt("web");
+  auto camera   = spdlog::stdout_color_mt("camera");
+  auto library  = spdlog::stdout_color_mt("library");
+  auto ffmpeg   = spdlog::stdout_color_mt("ffmpeg");
+  auto settings = spdlog::stdout_color_mt("settings");
 
   SetupOpenCVLogging();
   SetupFFmpegLogging();

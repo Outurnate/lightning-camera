@@ -89,6 +89,8 @@ public:
   bool IsRunning();
 private:
   void Run(double clipLengthSeconds = 30, std::optional<BayerMode> bayerMode = std::nullopt, std::optional<cv::Size> requestedDimensions = std::nullopt);
+  void LoadSettings();
+  void SaveSettings();
 
   std::unique_ptr<VideoTrigger> trigger;
   VideoLibrary& library;

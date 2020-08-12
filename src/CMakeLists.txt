@@ -10,6 +10,7 @@ add_executable(stormwatch
                ${CMAKE_CURRENT_SOURCE_DIR}/FFmpegInit.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/VideoID.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/VideoSaveJob.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/Platform.cpp
                $<$<PLATFORM_ID:Windows>:${CMAKE_SOURCE_DIR}/platform/stormwatch.rc>)
 
 # Configure source compiler definitions
@@ -24,7 +25,8 @@ target_link_libraries(stormwatch ${CONAN_LIBS} web_resources xdg ffmpeg-cpp cpp-
 target_precompile_headers(stormwatch PRIVATE
   <restinio/all.hpp>
   <opencv2/core.hpp>
-  <opencv2/core/mat.hpp>)
+  <opencv2/core/mat.hpp>
+  <nlohmann/json.hpp>)
 
 # Extra warnings
 target_compile_options(stormwatch PRIVATE

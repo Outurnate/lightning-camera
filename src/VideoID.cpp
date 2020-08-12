@@ -33,6 +33,11 @@ VideoID::VideoID(const std::string& id)
   boost::posix_time::from_iso_extended_string(GetTimestamp());
 }
 
+VideoID::VideoID(const std::string_view id)
+  : VideoID(std::string(id))
+{
+}
+
 const std::string& VideoID::GetID() const
 {
   return id;

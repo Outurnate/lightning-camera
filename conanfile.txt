@@ -3,7 +3,7 @@ opencv/4.3.0@conan/stable
 boost/1.73.0
 restinio/0.6.8.1
 spdlog/1.7.0
-ffmpeg/4.2@bincrafters/stable
+ffmpeg/4.2.1@bincrafters/stable
 nlohmann_json/3.9.1
 magic_enum/0.6.6
 
@@ -15,6 +15,8 @@ cmake
 [options]
 ffmpeg:shared=False
 opencv:shared=False
+
+restinio:asio=boost
 
 ffmpeg:xcb=False
 ffmpeg:pulse=False
@@ -40,6 +42,7 @@ ffmpeg:mp3lame=False
 ffmpeg:fdk_aac=False
 ffmpeg:webp=False
 ffmpeg:openssl=False
+
 opencv:jpeg=True
 opencv:tiff=False
 opencv:webp=True

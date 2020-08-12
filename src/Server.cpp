@@ -143,29 +143,37 @@ inline auto Server::CreateHandler()
     "/clips/([A-Za-z0-9\\+/=]+)\\.(jpeg|webm)",
     [this](auto req, auto params)
     {
-      auto clipPath = library.GetClipPath(VideoID(fmt::format("{}.{}", params[0], params[1])));
-      if (clipPath)
+      if (params[1] == "jpeg")
       {
-        auto resp = init(req->create_response());
-
-        if (params[1] == "jpeg")
-          resp.append_header(restinio::http_field::content_type, "image/jpeg");
-        else
-          resp.append_header(restinio::http_field::content_type, "video/webm");
-        
-        return resp
-          .set_body(restinio::sendfile(clipPath.value().string()))
-          .done();
+        if (auto clipPath = library.GetClipThumbnailPath(VideoID(params[0])); clipPath)
+        {
+          return init(req->create_response())
+            .append_header(restinio::http_field::content_type, "image/jpeg")
+            .set_body(restinio::sendfile(clipPath.value().string()))
+            .done();
+        }
+        return restinio::request_rejected();
+      }
+      else if (params[1] == "webm")
+      {
+        if (auto clipPath = library.GetClipVideoPath(VideoID(params[0])); clipPath)
+        {
+          return init(req->create_response())
+            .append_header(restinio::http_field::content_type, "video/webm")
+            .set_body(restinio::sendfile(clipPath.value().string()))
+            .done();
+        }
+        return restinio::request_rejected();
       }
       else
         return restinio::request_rejected();
     });
 
   router->http_delete(
-    "/clips/([A-Za-z0-9\\+/=]+)\\.(mp4)",
+    "/clips/([A-Za-z0-9\\+/=]+)\\.(webm)",
     [this](auto req, auto params)
     {
-      auto result = library.DeleteClip(VideoID(fmt::format("{}.{}", params[0], params[1])));
+      auto result = library.DeleteClip(VideoID(params[0]));
 
       return init(req->create_response())
         .append_header(restinio::http_field::content_type, "text/plain; charset=utf-8")
