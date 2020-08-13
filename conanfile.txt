@@ -18,20 +18,22 @@ opencv:shared=False
 
 restinio:asio=boost
 
-ffmpeg:xcb=False
-ffmpeg:pulse=False
+#linux only
+#ffmpeg:alsa=False
+#ffmpeg:pulse=False
+#ffmpeg:vaapi=False
+#ffmpeg:vdpau=False
+#ffmpeg:xcb=False
+
 ffmpeg:vorbis=False
 ffmpeg:lzma=False
 ffmpeg:iconv=False
 ffmpeg:bzlib=False
 ffmpeg:opus=False
 ffmpeg:zmq=False
-ffmpeg:alsa=False
 ffmpeg:freetype=False
 ffmpeg:openjpeg=False
-ffmpeg:vdpau=False
 ffmpeg:zlib=False
-ffmpeg:vaapi=False
 ffmpeg:postproc=False
 ffmpeg:openh264=False
 ffmpeg:sdl2=False

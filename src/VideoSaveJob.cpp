@@ -25,7 +25,7 @@
 // Translated to constexpr from
 // https://rosettacode.org/wiki/Convert_decimal_number_to_rational#C
 // I have pretty much no idea how this works...but it do
-constexpr AVRational NearestRational(double f)
+const AVRational NearestRational(double f)
 {
   int h[3] = { 0, 1, 0 };
   int k[3] = { 1, 0, 0 };
